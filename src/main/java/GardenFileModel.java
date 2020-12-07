@@ -30,9 +30,8 @@ public class GardenFileModel {
         if (version == null || version.length() ==0) {
             return;
         }
-        // Remove current version
+        // Remove version
         versionMap.remove(version);
-        // TODO delete success alert
         saveVersionMap(filePath);
     }
 
@@ -236,7 +235,10 @@ public class GardenFileModel {
      **/
     public String getNewVersion(){
         String s = version_b + version_a;
-        version_a++;
+        while (versionMap.containsKey(s)){
+            version_a++;
+            s = version_b + version_a;
+        }
         return s;
     }
 }

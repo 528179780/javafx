@@ -1,4 +1,5 @@
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -11,13 +12,15 @@ import javafx.scene.layout.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class GardenView {
     /**
      * version util
      * i am not sure this way could keep gardenFileModel
      */
-    private static GardenFileModel gardenFileModel = new GardenFileModel();
+    private final GardenFileModel gardenFileModel = new GardenFileModel();
     private String nowVersion = "";
     private Controller controller;
     private BorderPane mainBorderPane;
@@ -230,7 +233,7 @@ public class GardenView {
      * @author sufu
      * @date 2020/12/5 15:10
      **/
-    private void doVersionMenu() {
+    private void updateVersionMenu() {
         if (menuVersion.getItems().size() > 0) {
             ObservableList<MenuItem> list = menuVersion.getItems();
             menuVersion.getItems().removeAll(list);
@@ -321,34 +324,12 @@ public class GardenView {
      **/
     public MenuBar doGardenMenuBar() {
         MenuBar menuBar = new MenuBar();
+        Menu saveMenu = new Menu();
+        Label saveLabel = new Label("Save");
+        saveMenu.setGraphic(saveLabel);
+        saveLabel.setOnMouseClicked(event -> saveVersion());
 
-
-        Menu fileMenu = new Menu("File");
-        MenuItem newVersionItem = new MenuItem("new version");
-        newVersionItem.setOnAction(e->{
-            nowVersion = "";
-        });
-        MenuItem saveItem = new MenuItem("save");
-        MenuItem saveNewVersionItem = new MenuItem("save as new version");
-        saveNewVersionItem.setOnAction(event -> saveVersion());
-        fileMenu.getItems().addAll(newVersionItem,saveItem,saveNewVersionItem);
-
-        //---------------------------------------------------------------------
-        Menu menuSave = new Menu("save");
-        MenuItem saveToThisVersion = new MenuItem("save");
-        saveToThisVersion.setOnAction(e->saveVersion());
-        menuSave.getItems().add(saveToThisVersion);
-        if(nowVersion.length()>0){
-            // save to new version
-            MenuItem saveAsANewVersion = new MenuItem("保存到新版本");
-            saveAsANewVersion.setOnAction(e->saveVersion());
-            menuSave.getItems().add(saveAsANewVersion);
-        }
-        //---------------------------------------------------------------------
-
-
-
-        Menu menu1 = new Menu("List");
+        Menu resourcesList = new Menu("Resources List");
         MenuItem plantMenu = new MenuItem("Plant List");
         plantMenu.setOnAction(event -> {
             this.renderLeftItems(0);
@@ -364,21 +345,40 @@ public class GardenView {
             this.renderLeftItems(1);
         });
 
-        MenuItem SwimingMenu = new MenuItem("Swiming pool");
-        SwimingMenu.setOnAction(event -> {
+        MenuItem swimmingPoolMenuItem = new MenuItem("Swiming pool");
+        swimmingPoolMenuItem.setOnAction(event -> {
             this.renderLeftItems(2);
         });
-        menu1.getItems().addAll(plantMenu, houseMenu, rockMenu, SwimingMenu);
+        resourcesList.getItems().addAll(plantMenu, houseMenu, rockMenu, swimmingPoolMenuItem);
         menuVersion = new Menu("Version");
-        this.doVersionMenu();
+        updateVersionMenu();
 
+        Menu newVersionMenu = new Menu();
+        Label newVersionLabel = new Label("New Version");
+        newVersionMenu.setGraphic(newVersionLabel);
+        newVersionLabel.setOnMouseClicked(e->{
+            if(nowVersion == null){
+                return;
+            }
+            nowVersion = "";
+            canvas = getNewCanvas((int)canvas.getHeight(), (int)canvas.getWidth());
+            mainBorderPane.setCenter(canvas);
+        });
 
         Menu deleteMenu = new Menu();
         Label deleteLabel = new Label("Delete");
         deleteLabel.setOnMouseClicked(event -> {
+            if(Objects.equals(nowVersion, "")){
+                return;
+            }
+            System.out.println("do delete");
             gardenFileModel.doDelete(nowVersion);
-            this.doVersionMenu();
-            initVersion();
+            updateVersionMenu();
+            // check if version is null
+//            if(gardenFileModel.getVersions().size() == 0){
+//                // all versions is deleted, new pane will be add to canvas
+//            }
+            nowVersion ="";
             canvas.getChildren().removeAll(canvas.getChildren());
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setHeaderText("Delete Success");
@@ -388,13 +388,11 @@ public class GardenView {
 
 
         Menu backMenu = new Menu();
-        Label backLabel = new Label("back");
-        backLabel.setOnMouseClicked(event -> {
-            controller.showWelcomeView();
-        });
+        Label backLabel = new Label("Back");
+        backLabel.setOnMouseClicked(event -> controller.showWelcomeView());
         backMenu.setGraphic(backLabel);
 
-        menuBar.getMenus().addAll(fileMenu, menu1, menuVersion, menuSave, deleteMenu, backMenu);
+        menuBar.getMenus().addAll(resourcesList, menuVersion, newVersionMenu, saveMenu, deleteMenu, backMenu);
         return menuBar;
     }
     /**
@@ -417,30 +415,42 @@ public class GardenView {
         return list;
     }
     /**
-     * save version and update versionMenu
+     * save version and update versionMenu. if nowVersion is null,
+     * show a dialog to get version name,
+     * if user didn't input version,
+     * auto get new version from gardenFileModel
      * @author sufu
      * @date 2020/12/5 15:46
      **/
     private void saveVersion() {
-        // TODO version save with current version
-        gardenFileModel.doSave(nowVersion,getImageModelListFromPane());
+        List<ImageModel> imageModelListFromPane = getImageModelListFromPane();
+        if(imageModelListFromPane.size() == 0){
+            return;
+        }
+        if(nowVersion == null || nowVersion.length() == 0){
+            TextInputDialog textInputDialog = getTextInputDialog();
+            Optional<String> result  = textInputDialog.showAndWait();
+            if(result.isEmpty()){
+                // 如果点击取消，则返回 不执行
+                return;
+            }
+            nowVersion = result.orElse("");
+            if(nowVersion.length() == 0){
+                nowVersion = gardenFileModel.getNewVersion();
+            }
+        }else {
+            // check if nothing happened since last click save
+            if (gardenFileModel.versionMap.get(nowVersion).equals(imageModelListFromPane)) {
+                return;
+            }
+        }
+        gardenFileModel.doSave(nowVersion, imageModelListFromPane);
         // 修改version 菜单项
-        doVersionMenu();
+        updateVersionMenu();
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        String s="";
-        alert.setHeaderText("Save Success"+" "+s);
+        alert.setHeaderText("Save Success !");
+        alert.setContentText("Saved as version "+nowVersion);
         alert.show();
-    }
-    // TODO 保存到版本，在这里写两个方法 复用doSave方法
-    /**
-     * save to new version
-     * @author sufu
-     * @date 2020/12/6 11:57
-     * @param
-     * @return
-     **/
-    private void saveNewVersion(){
-        String newVersion = gardenFileModel.getNewVersion();
     }
 
     /**
@@ -458,7 +468,6 @@ public class GardenView {
             ContextMenu contextMenu = deleteMenuItem.getParentPopup();
             StackPane source = (StackPane) contextMenu.getOwnerNode();
             // 从画布中删除 stackPane
-            // TODO 修改切换版本之后不能右键删除的bug
             Pane pane = (Pane) source.getParent();
             pane.getChildren().remove(source);
         });
@@ -469,5 +478,13 @@ public class GardenView {
             }
         });
         return stackPane;
+    }
+    private TextInputDialog getTextInputDialog(){
+        TextInputDialog textInputDialog = new TextInputDialog();
+        textInputDialog.setGraphic(new Label());
+        textInputDialog.setHeaderText("Please input version");
+        textInputDialog.setTitle("Input version");
+        textInputDialog.setContentText("Version:");
+        return textInputDialog;
     }
 }
