@@ -12,10 +12,7 @@ import javafx.scene.layout.*;
 import resources.Resource;
 import resources.ResourcesManagement;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GardenView {
@@ -32,15 +29,25 @@ public class GardenView {
      */
     private static Pane canvas;
     private Menu menuVersion;
+    /**
+     * init evaluationMap by using Anonymous inner class
+     * @author sufu
+     * @date 2020/12/8 9:36
+     **/
+    private final HashMap<Integer,String> evaluationMap = new HashMap<>();
 
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
     /**
-     * Gets the display of the current view
+     * Gets the display of the current view and init evaluationMap
      */
     public VBox doGardenView(int height, int width) {
+        evaluationMap.put(1, "bad");
+        evaluationMap.put(2, "normal");
+        evaluationMap.put(3, "good");
+        evaluationMap.put(4, "perfect");
         return this.initView(height, width);
     }
 
@@ -484,9 +491,31 @@ public class GardenView {
         // 修改version 菜单项
         updateVersionMenu();
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setHeaderText("Save Success !");
+        alert.setHeaderText("Your garden is "+getEvaluation(imageModelListFromPane));
         alert.setContentText("Saved as version "+nowVersion);
         alert.show();
+    }
+
+    /**
+     * get Evaluation before save version according to the number of image types,
+     * one type for bad, two for normal,three for good, four or more for perfect
+     * @author sufu
+     * @date 2020/12/8 9:39
+     * @param imageModelListFromPane imageModels from the canvas
+     * @return java.lang.String Evaluation
+     **/
+    private String getEvaluation(List<ImageModel> imageModelListFromPane) {
+        Set<String> typeSet = new HashSet<>();
+        // 从url中提取类型信息
+        for (ImageModel imageModel : imageModelListFromPane) {
+            // 两次截取获得分类
+            String imageUrl = imageModel.imageUrl;
+            String substring = imageUrl.substring(0,imageUrl.lastIndexOf("/"));
+            String type = substring.substring(substring.lastIndexOf("/")+1);
+            typeSet.add(type);
+        }
+        String evaluation = evaluationMap.getOrDefault(typeSet.size(), "perfect");
+        return evaluation;
     }
 
     /**
