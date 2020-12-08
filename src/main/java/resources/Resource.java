@@ -75,9 +75,8 @@ public class Resource {
 
     public static ArrayList<Resource> getResources(String filePath){
         List<List<String>> list = new ArrayList();
-        try {
-            FileReader fileReader = new FileReader(filePath);
-            BufferedReader br = new BufferedReader(fileReader);
+        try(FileReader fileReader = new FileReader(filePath);
+            BufferedReader br = new BufferedReader(fileReader);) {
             String[] header = br.readLine().split(",");
             String ss;
             while ((ss = br.readLine())!=null){

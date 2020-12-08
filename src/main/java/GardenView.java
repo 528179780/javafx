@@ -283,6 +283,16 @@ public class GardenView {
                     });
                     vBoxImage.getChildren().addAll(imageView);
                 }
+                ArrayList<Resource> resources = Resource.getResources("src/main/resources/file/plantinfo.csv");
+                for (Resource resource : resources) {
+                    ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
+                    imageView.setFitWidth(100);
+                    imageView.setFitHeight(100);
+                    imageView.setOnMouseClicked(event -> {
+                        onClick(((ImageView) event.getPickResult().getIntersectedNode()).getImage().getUrl());
+                    });
+                    vBoxImage.getChildren().add(imageView);
+                }
                 break;
             }
             case 1: {
@@ -334,7 +344,7 @@ public class GardenView {
      **/
     private void renderLeftItemsWithResource(List<Resource> resourceList){
         ScrollPane left = (ScrollPane) mainBorderPane.getLeft();
-        VBox vBoxImage = new VBox();
+        VBox vBoxImage = (VBox) left.getContent();
         for (Resource resource : resourceList) {
             ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
             imageView.setFitHeight(100);
@@ -343,7 +353,6 @@ public class GardenView {
             vBoxImage.getChildren().add(imageView);
         }
         left.setContent(vBoxImage);
-
     }
 
     /**
@@ -360,18 +369,6 @@ public class GardenView {
         saveLabel.setOnMouseClicked(event -> saveVersion());
 
         Menu resourcesListMenu = new Menu("Resources List");
-        ArrayList<Resource> resources = Resource.getResources("src/main/resources/file/plantinfo.csv");
-        List<List<Resource>> resourceByKind = new ArrayList<>();
-        // 按照种类分类
-        resources.stream().collect(Collectors.groupingBy(Resource::getPlantKind)).forEach((name,res)->{
-            resourceByKind.add(res);
-        });
-        for (List<Resource> resourceList : resourceByKind) {
-            MenuItem menuItem = new MenuItem(resourceList.get(0).getPlantKind());
-            menuItem.setOnAction(event -> renderLeftItemsWithResource(resourceList));
-            resourcesListMenu.getItems().add(menuItem);
-        }
-
 
         MenuItem plantMenu = new MenuItem("Plant List");
         plantMenu.setOnAction(event -> {
