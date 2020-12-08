@@ -260,7 +260,8 @@ public class GardenView {
         }
     }
     /**
-     * render left items in the csv
+     * render left image list with the key
+     * @param key the image kind
      * @author sufu
      * @date 2020/12/8 8:46
      **/
@@ -281,7 +282,7 @@ public class GardenView {
     }
 
     /**
-     * init top menu
+     * init top menuBar
      * @author sufu
      * @date 2020/12/5 16:21
      * @return javafx.scene.control.MenuBar
@@ -348,7 +349,7 @@ public class GardenView {
      * get List<ImageModel> from canvas, this will be saved as a version
      * @author sufu
      * @date 2020/12/6 13:42
-     * @return java.util.List<ImageModel>
+     * @return java.util.List<ImageModel> imageModel list in the canvas
      **/
     private List<ImageModel> getImageModelListFromPane(){
         List<ImageModel> list = new ArrayList<>();

@@ -14,14 +14,14 @@ public class Resource {
     private String plantName;
     private String plantInfo;
     private String imageAddress;
-    private String Kind;
+    private String kind;
     private String insectKind;
 
     private Resource(List<String> strings) {
         this.plantName = strings.get(0);
         this.plantInfo = strings.get(1);
         this.imageAddress = strings.get(2);
-        this.Kind = strings.get(3);
+        this.kind = strings.get(3);
         this.insectKind = strings.get(4);
     }
 
@@ -50,11 +50,11 @@ public class Resource {
     }
 
     public String getKind() {
-        return Kind;
+        return kind;
     }
 
     public void setKind(String kind) {
-        this.Kind = kind;
+        this.kind = kind;
     }
 
     public String getInsectKind() {
@@ -97,7 +97,7 @@ public class Resource {
                 "plantName='" + plantName + '\'' +
                 ", plantInfo='" + plantInfo + '\'' +
                 ", imageAddress='" + imageAddress + '\'' +
-                ", plantKind='" + Kind + '\'' +
+                ", plantKind='" + kind + '\'' +
                 ", insectKind='" + insectKind + '\'' +
                 '}';
     }
