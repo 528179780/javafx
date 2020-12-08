@@ -1,0 +1,11 @@
+Plant Name,Plant info,image address,Plant Kind,Insect Kind
+Boxelder,"Perennial, spring, Full-Sun, Average/Moist",src/main/resources/native_tree_pic/boxelder.png,Tree,"Insect kind: Bettle, Grasshopper, Caterpillar"
+PurpleMilkweed,"Perennial, summer, Full-Sun, Average/Moist",src/main/resources/native_plants_pic/purple_milkweed.png,Flower,"Insect kind: Butterfly, Caterpillar, Tick"
+Maleberry,"Perennial, summer, Part shade, Average/Moist",src/main/resources/native_plants_pic/maleberry.png,Flower,"Insect kind: Centipede, Snail, Wasp"
+TallIronweed,"Perennial, Early-Fall, Part shade/Full-Sun,verage/Dry",src/main/resources/native_plants_pic/tall_ironweed.png,Flower,"Insect kind: Cockroach, Dragonfly, Termite"
+Foamflower,"Perennial, spring, Part shade, Average/Dry/Moist",src/main/resources/native_plants_pic/foamflower.png,Flower,"Insect kind: Greenfly, Praying Mantids, Cricket"
+Hackberry,"Perennial, summer, Full-Sun, moist",src/main/resources/native_tree_pic/hackberry.png,Tree,"Insect kind: Centipede, Locust, Snal"
+SwampSunflower,"Perennial, fall, Part shade/Full-Sun, Average/Dry,Moist",src/main/resources/native_plants_pic/swamp_sunflower.png,Flower,"Insect kind: Maggot, Dragonfly"
+PinkAzalea,"Shrub, spring, Part shade/Full-Sun, Average/Moist",src/main/resources/native_plants_pic/pink_azalea.png,Flower,"Insect kind: Snail, Grasshopper, Tick"
+Yellowroot,"Shrub, spring, Part shade/Full-Sun, Average/Dry/Moist",src/main/resources/native_plants_pic/yellowroot.png,Flower,"Insect kind: Praying Mantids, Locust, Cricket"
+AlleghenyServiceBerry,"Perennial, spring, Full-Sun, Average/Moist ",src/main/resources/native_plants_pic/allegheny_serviceberry.png,Flower,"Insect kind: Centiped, Dragonfly, Greenfly"

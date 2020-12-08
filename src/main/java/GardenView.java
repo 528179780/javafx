@@ -9,11 +9,14 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
+import resources.Resource;
+import resources.ResourcesManagement;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class GardenView {
     /**
@@ -123,7 +126,7 @@ public class GardenView {
      * add image to canvas by given image url
      * @author sufu
      * @date 2020/12/5 17:17
-     * @param imageUrl The url of the picture to be added
+     * @param imageUrl The url of the picture to be added into canvas
      **/
     private void onClick(String imageUrl) {
         // TODO 这里实现逻辑只是向canvas中添加一个image，需要实现从左侧选项中直接拖动过去。
@@ -315,6 +318,26 @@ public class GardenView {
         scrollPane.setContent(vBoxImage);
         mainBorderPane.setLeft(scrollPane);
     }
+    /**
+     * render left items in the csv
+     * @author sufu
+     * @date 2020/12/8 8:46
+     * @param
+     * @return
+     **/
+    private void renderLeftItemsWithResource(List<Resource> resourceList){
+        ScrollPane left = (ScrollPane) mainBorderPane.getLeft();
+        VBox vBoxImage = new VBox();
+        for (Resource resource : resourceList) {
+            ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
+            imageView.setFitHeight(100);
+            imageView.setFitWidth(100);
+            imageView.setOnMouseClicked(e-> onClick("file:"+resource.getImageAddress()));
+            vBoxImage.getChildren().add(imageView);
+        }
+        left.setContent(vBoxImage);
+
+    }
 
     /**
      * init top menu
@@ -329,27 +352,40 @@ public class GardenView {
         saveMenu.setGraphic(saveLabel);
         saveLabel.setOnMouseClicked(event -> saveVersion());
 
-        Menu resourcesList = new Menu("Resources List");
+        Menu resourcesListMenu = new Menu("Resources List");
+        ArrayList<Resource> resources = Resource.getResources("src/main/resources/file/plantinfo.csv");
+        List<List<Resource>> resourceByKind = new ArrayList<>();
+        // 按照种类分类
+        resources.stream().collect(Collectors.groupingBy(Resource::getPlantKind)).forEach((name,res)->{
+            resourceByKind.add(res);
+        });
+        for (List<Resource> resourceList : resourceByKind) {
+            MenuItem menuItem = new MenuItem(resourceList.get(0).getPlantKind());
+            menuItem.setOnAction(event -> renderLeftItemsWithResource(resourceList));
+            resourcesListMenu.getItems().add(menuItem);
+        }
+
+
         MenuItem plantMenu = new MenuItem("Plant List");
         plantMenu.setOnAction(event -> {
-            this.renderLeftItems(0);
+            renderLeftItems(0);
         });
 
         MenuItem houseMenu = new MenuItem("House");
         houseMenu.setOnAction(event -> {
-            this.renderLeftItems(3);
+            renderLeftItems(3);
         });
 
         MenuItem rockMenu = new MenuItem("Rock");
         rockMenu.setOnAction(event -> {
-            this.renderLeftItems(1);
+            renderLeftItems(1);
         });
 
         MenuItem swimmingPoolMenuItem = new MenuItem("Swiming pool");
         swimmingPoolMenuItem.setOnAction(event -> {
             this.renderLeftItems(2);
         });
-        resourcesList.getItems().addAll(plantMenu, houseMenu, rockMenu, swimmingPoolMenuItem);
+        resourcesListMenu.getItems().addAll(plantMenu, houseMenu, rockMenu, swimmingPoolMenuItem);
         menuVersion = new Menu("Version");
         updateVersionMenu();
 
@@ -392,7 +428,7 @@ public class GardenView {
         backLabel.setOnMouseClicked(event -> controller.showWelcomeView());
         backMenu.setGraphic(backLabel);
 
-        menuBar.getMenus().addAll(resourcesList, menuVersion, newVersionMenu, saveMenu, deleteMenu, backMenu);
+        menuBar.getMenus().addAll(resourcesListMenu, menuVersion, newVersionMenu, saveMenu, deleteMenu, backMenu);
         return menuBar;
     }
     /**
