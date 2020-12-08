@@ -2,6 +2,8 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -9,6 +11,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import resources.Resource;
 import resources.ResourcesManagement;
 
@@ -101,15 +104,6 @@ public class GardenView {
     }
 
 
-    /**
-     * init a new version
-     * @author sufu
-     * @date 2020/12/6 9:21
-     **/
-    private void initVersion() {
-        nowVersion = gardenFileModel.getNewVersion();
-    }
-
     public void resizable(Node node){
 
         node.addEventFilter(ScrollEvent.SCROLL, event -> {
@@ -134,30 +128,31 @@ public class GardenView {
 
     }
     /**
-     * add image to canvas by given image url
+     * add image to canvas by given resource
      * @author sufu
      * @date 2020/12/5 17:17
-     * @param imageUrl The url of the picture to be added into canvas
+     * @param resource The picture of resources to be added into canvas
      **/
-    private void onClick(String imageUrl) {
+    private void onClick(Resource resource) {
         // TODO 这里实现逻辑只是向canvas中添加一个image，需要实现从左侧选项中直接拖动过去。
-        Pane node = getCircleNode(imageUrl);
+        Pane node = getCircleNode(resource);
         setDraggable(node);
         resizable(node);
         canvas.getChildren().add(node);
     }
     /**
-     * get a new image to be added into canvas with given Url
+     * get image from resource and set width,height
      * @author sufu
      * @date 2020/12/5 17:20
-     * @param ImageUrl The url of the picture to be added
-     * @return javafx.scene.layout.Pane
+     * @param resource resource information need get
+     * @return javafx.scene.layout.Pane the pane need added into canvas
      **/
-    private Pane getCircleNode(String ImageUrl) {
+    private Pane getCircleNode(Resource resource) {
         StackPane node = new StackPane();
-        ImageView imageView = new ImageView(new Image(ImageUrl));
-        imageView.setFitWidth(100);
-        imageView.setFitHeight(100);
+        ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
+        double canvasSize = Math.min(canvas.getWidth(), canvas.getHeight());
+        imageView.setFitWidth(canvasSize*resource.getSize()/100);
+        imageView.setFitHeight(canvasSize*resource.getSize()/100);
         node.getChildren().add(imageView);
         return setNodeDeletable(node);
     }
@@ -184,7 +179,6 @@ public class GardenView {
         node.addEventHandler(MouseEvent.MOUSE_ENTERED, event -> node.setCursor(Cursor.HAND));
         node.addEventHandler(MouseEvent.MOUSE_EXITED, event -> node.setCursor(Cursor.DEFAULT));
         // Prompt the user that the node can be dragged
-        // 实现可拖动
         node.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
             node.setCursor(Cursor.MOVE);
 
@@ -198,8 +192,8 @@ public class GardenView {
         node.addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
             double distanceX = event.getX() - pos.x;
             double distanceY = event.getY() - pos.y;
-            double x = node.getLayoutX() + distanceX;
-            double y = node.getLayoutY() + distanceY;
+            double x;
+            double y;
             if(((node.getLayoutX() + distanceX)<450)&&((node.getLayoutX() + distanceX)>=0)){
                 x = node.getLayoutX() + distanceX;
                 }
@@ -252,7 +246,6 @@ public class GardenView {
             ObservableList<MenuItem> list = menuVersion.getItems();
             menuVersion.getItems().removeAll(list);
         }
-
         for (String key : gardenFileModel.getVersions()) {
             MenuItem menu = new MenuItem(key);
             menu.setOnAction(event -> doVersion(((MenuItem) event.getTarget()).getText()));
@@ -271,14 +264,43 @@ public class GardenView {
         leftScrollPane.setPrefHeight(600);
         VBox vBoxImage = new VBox();
         for (Resource resource : resources.get(key)) {
-            ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
+            Image image = new Image("file:" + resource.getImageAddress());
+            ImageView imageView = new ImageView(image);
             imageView.setFitHeight(100);
             imageView.setFitWidth(100);
-            imageView.setOnMouseClicked(e-> onClick("file:"+resource.getImageAddress()));
+            imageView.setOnMouseClicked(e-> {
+                if(e.getButton().equals(MouseButton.SECONDARY)){
+                    // SECONDARY mouse button clicked
+                    showInfo(resource);
+                }else {
+                    onClick(resource);
+                }
+            });
             vBoxImage.getChildren().add(imageView);
         }
         leftScrollPane.setContent(vBoxImage);
         mainBorderPane.setLeft(leftScrollPane);
+    }
+    /**
+     * new dialog to show resources information
+     * @author sufu
+     * @date 2020/12/8 13:04
+     * @param resource resource info to be shown
+     **/
+    private void showInfo(Resource resource){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        ImageView imageView = new ImageView("file:" + resource.getImageAddress());
+        imageView.setFitWidth(150);
+        imageView.setFitHeight(150);
+        alert.setGraphic(imageView);
+        alert.setHeaderText("");
+        String text = "name: "+resource.getPlantName() +
+                "\nkind: "+resource.getKind()+
+                "\ninfo: " +resource.getPlantInfo()+
+                "\ninsectKind: "+resource.getInsectKind()+
+                "\nimageAddress: "+resource.getImageAddress();
+        alert.setContentText(text);
+        alert.show();
     }
 
     /**
@@ -398,13 +420,22 @@ public class GardenView {
         // 修改version 菜单项
         updateVersionMenu();
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setHeaderText("Your garden is "+getEvaluation(imageModelListFromPane));
+        String evaluation = getEvaluation(imageModelListFromPane);
+        String tips;
+        if (Objects.equals(evaluation, "good")) {
+            tips = "\nYou only need one more kind of pictures!";
+        }else if(Objects.equals(evaluation, "perfect")){
+            tips = "";
+        }else {
+            tips = "\nYou need more kinds of pictures!";
+        }
+        alert.setHeaderText("Your garden is "+evaluation+tips);
         alert.setContentText("Saved as version "+nowVersion);
         alert.show();
     }
 
     /**
-     * get Evaluation before save version according to the number of image types,
+     * get evaluation before save version according to the number of image types,
      * one type for bad, two for normal,three for good, four or more for perfect
      * @author sufu
      * @date 2020/12/8 9:39
@@ -450,6 +481,12 @@ public class GardenView {
         });
         return stackPane;
     }
+    /**
+     * get a TextInputDialog to let user input version
+     * @author sufu
+     * @date 2020/12/8 13:58
+     * @return javafx.scene.control.TextInputDialog textInputDialog
+     **/
     private TextInputDialog getTextInputDialog(){
         TextInputDialog textInputDialog = new TextInputDialog();
         textInputDialog.setGraphic(new Label());

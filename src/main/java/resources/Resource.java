@@ -16,6 +16,10 @@ public class Resource {
     private String imageAddress;
     private String kind;
     private String insectKind;
+    /**
+     * based on garden size
+     */
+    private int size;
 
     private Resource(List<String> strings) {
         this.plantName = strings.get(0);
@@ -23,6 +27,7 @@ public class Resource {
         this.imageAddress = strings.get(2);
         this.kind = strings.get(3);
         this.insectKind = strings.get(4);
+        this.size = Integer.parseInt(strings.get(5));
     }
 
     public String getPlantName() {
@@ -65,6 +70,14 @@ public class Resource {
         this.insectKind = insectKind;
     }
 
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
     public static HashMap<String,List<Resource>> getResources(String filePath){
         HashMap<String,List<Resource>> resMap = new HashMap<>();
         List<List<String>> list = new ArrayList();
@@ -97,8 +110,9 @@ public class Resource {
                 "plantName='" + plantName + '\'' +
                 ", plantInfo='" + plantInfo + '\'' +
                 ", imageAddress='" + imageAddress + '\'' +
-                ", plantKind='" + kind + '\'' +
+                ", kind='" + kind + '\'' +
                 ", insectKind='" + insectKind + '\'' +
+                ", size=" + size +
                 '}';
     }
 }
