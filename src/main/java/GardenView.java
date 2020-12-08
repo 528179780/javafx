@@ -31,10 +31,14 @@ public class GardenView {
     private Menu menuVersion;
     /**
      * init evaluationMap by using Anonymous inner class
-     * @author sufu
      * @date 2020/12/8 9:36
      **/
     private final HashMap<Integer,String> evaluationMap = new HashMap<>();
+    /**
+     * load resources, key is kind, value resources is arraylist
+     * @date 2020/12/8 11:49
+     **/
+    HashMap<String, List<Resource>> resources = Resource.getResources("src/main/resources/file/plantinfo.csv");
 
     public void setController(Controller controller) {
         this.controller = controller;
@@ -69,8 +73,8 @@ public class GardenView {
         mainBorderPane.setPrefWidth(1200);
         mainBorderPane.setPrefHeight(600);
         // 渲染左边的list项 也就是选择的贴图元素
-        renderLeftItems(0);
-
+//        renderLeftItems(0);
+        renderLeftItemsWithResource(resources.keySet().iterator().next());
         canvas = getNewCanvas(height, width);
         mainBorderPane.setCenter(canvas);
         vBox.getChildren().add(mainBorderPane);
@@ -251,108 +255,29 @@ public class GardenView {
 
         for (String key : gardenFileModel.getVersions()) {
             MenuItem menu = new MenuItem(key);
-            menu.setOnAction(event -> {
-                this.doVersion(((MenuItem) event.getTarget()).getText());
-            });
+            menu.setOnAction(event -> doVersion(((MenuItem) event.getTarget()).getText()));
             menuVersion.getItems().add(menu);
         }
-    }
-
-    /**
-     * Switch scene picture, change picture content
-     * 0: House
-     * 1: Rock
-     * 2: Swiming pool
-     */
-    private void renderLeftItems(int type) {
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setPrefWidth(125);
-        scrollPane.setPrefHeight(600);
-        /*
-         * Load the image content on the left
-         */
-        VBox vBoxImage = new VBox();
-        switch (type) {
-            case 0: {
-                for (int i = 1; i <= 13; i++) {
-                    ImageView imageView = new ImageView(new Image("file:src/main/resources/garden/image" + i + ".png"));
-                    imageView.setFitWidth(100);
-                    imageView.setFitHeight(100);
-                    imageView.setOnMouseClicked(event -> {
-                        onClick(((ImageView) event.getPickResult().getIntersectedNode()).getImage().getUrl());
-                    });
-                    vBoxImage.getChildren().addAll(imageView);
-                }
-                ArrayList<Resource> resources = Resource.getResources("src/main/resources/file/plantinfo.csv");
-                for (Resource resource : resources) {
-                    ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
-                    imageView.setFitWidth(100);
-                    imageView.setFitHeight(100);
-                    imageView.setOnMouseClicked(event -> {
-                        onClick(((ImageView) event.getPickResult().getIntersectedNode()).getImage().getUrl());
-                    });
-                    vBoxImage.getChildren().add(imageView);
-                }
-                break;
-            }
-            case 1: {
-                for (int i = 1; i <= 4; i++) {
-                    ImageView imageView = new ImageView(new Image("file:src/main/resources/rock/rock" + i + ".png"));
-                    imageView.setFitWidth(100);
-                    imageView.setFitHeight(100);
-                    imageView.setOnMouseClicked(event -> {
-                        onClick(((ImageView) event.getPickResult().getIntersectedNode()).getImage().getUrl());
-                    });
-                    vBoxImage.getChildren().addAll(imageView);
-                }
-                break;
-            }
-            case 2: {
-                for (int i = 1; i <= 3; i++) {
-                    ImageView imageView = new ImageView(new Image("file:src/main/resources/swimming_pool/swimming_pool" + i + ".png"));
-                    imageView.setFitWidth(100);
-                    imageView.setFitHeight(100);
-                    imageView.setOnMouseClicked(event -> {
-                        onClick(((ImageView) event.getPickResult().getIntersectedNode()).getImage().getUrl());
-                    });
-                    vBoxImage.getChildren().addAll(imageView);
-                }
-                break;
-            }
-            case 3: {
-                for (int i = 1; i <= 4; i++) {
-                    ImageView imageView = new ImageView(new Image("file:src/main/resources/house/house" + i + ".png"));
-                    imageView.setFitWidth(100);
-                    imageView.setFitHeight(100);
-                    imageView.setOnMouseClicked(event -> {
-                        onClick(((ImageView) event.getPickResult().getIntersectedNode()).getImage().getUrl());
-                    });
-                    vBoxImage.getChildren().addAll(imageView);
-                }
-                break;
-            }
-        }
-        scrollPane.setContent(vBoxImage);
-        mainBorderPane.setLeft(scrollPane);
     }
     /**
      * render left items in the csv
      * @author sufu
      * @date 2020/12/8 8:46
-     * @param
-     * @return
      **/
-    private void renderLeftItemsWithResource(List<Resource> resourceList){
-        ScrollPane left = (ScrollPane) mainBorderPane.getLeft();
-        VBox vBoxImage = (VBox) left.getContent();
-        for (Resource resource : resourceList) {
+    private void renderLeftItemsWithResource(String key){
+        ScrollPane leftScrollPane = new ScrollPane();
+        leftScrollPane.setPrefWidth(125);
+        leftScrollPane.setPrefHeight(600);
+        VBox vBoxImage = new VBox();
+        for (Resource resource : resources.get(key)) {
             ImageView imageView = new ImageView(new Image("file:"+resource.getImageAddress()));
             imageView.setFitHeight(100);
             imageView.setFitWidth(100);
             imageView.setOnMouseClicked(e-> onClick("file:"+resource.getImageAddress()));
             vBoxImage.getChildren().add(imageView);
         }
-        left.setContent(vBoxImage);
+        leftScrollPane.setContent(vBoxImage);
+        mainBorderPane.setLeft(leftScrollPane);
     }
 
     /**
@@ -369,27 +294,11 @@ public class GardenView {
         saveLabel.setOnMouseClicked(event -> saveVersion());
 
         Menu resourcesListMenu = new Menu("Resources List");
-
-        MenuItem plantMenu = new MenuItem("Plant List");
-        plantMenu.setOnAction(event -> {
-            renderLeftItems(0);
-        });
-
-        MenuItem houseMenu = new MenuItem("House");
-        houseMenu.setOnAction(event -> {
-            renderLeftItems(3);
-        });
-
-        MenuItem rockMenu = new MenuItem("Rock");
-        rockMenu.setOnAction(event -> {
-            renderLeftItems(1);
-        });
-
-        MenuItem swimmingPoolMenuItem = new MenuItem("Swiming pool");
-        swimmingPoolMenuItem.setOnAction(event -> {
-            this.renderLeftItems(2);
-        });
-        resourcesListMenu.getItems().addAll(plantMenu, houseMenu, rockMenu, swimmingPoolMenuItem);
+        for (String key : resources.keySet()) {
+            MenuItem menuItem = new MenuItem(key);
+            menuItem.setOnAction(event -> renderLeftItemsWithResource(key));
+            resourcesListMenu.getItems().add(menuItem);
+        }
         menuVersion = new Menu("Version");
         updateVersionMenu();
 
@@ -511,8 +420,7 @@ public class GardenView {
             String type = substring.substring(substring.lastIndexOf("/")+1);
             typeSet.add(type);
         }
-        String evaluation = evaluationMap.getOrDefault(typeSet.size(), "perfect");
-        return evaluation;
+        return evaluationMap.getOrDefault(typeSet.size(), "perfect");
     }
 
     /**

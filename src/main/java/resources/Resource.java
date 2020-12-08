@@ -1,17 +1,9 @@
 package resources;
 
-import utils.CSVUtil;
-
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * single resource defined in csv file
@@ -22,14 +14,14 @@ public class Resource {
     private String plantName;
     private String plantInfo;
     private String imageAddress;
-    private String plantKind;
+    private String Kind;
     private String insectKind;
 
     private Resource(List<String> strings) {
         this.plantName = strings.get(0);
         this.plantInfo = strings.get(1);
         this.imageAddress = strings.get(2);
-        this.plantKind = strings.get(3);
+        this.Kind = strings.get(3);
         this.insectKind = strings.get(4);
     }
 
@@ -57,12 +49,12 @@ public class Resource {
         this.imageAddress = imageAddress;
     }
 
-    public String getPlantKind() {
-        return plantKind;
+    public String getKind() {
+        return Kind;
     }
 
-    public void setPlantKind(String plantKind) {
-        this.plantKind = plantKind;
+    public void setKind(String kind) {
+        this.Kind = kind;
     }
 
     public String getInsectKind() {
@@ -73,7 +65,8 @@ public class Resource {
         this.insectKind = insectKind;
     }
 
-    public static ArrayList<Resource> getResources(String filePath){
+    public static HashMap<String,List<Resource>> getResources(String filePath){
+        HashMap<String,List<Resource>> resMap = new HashMap<>();
         List<List<String>> list = new ArrayList();
         try(FileReader fileReader = new FileReader(filePath);
             BufferedReader br = new BufferedReader(fileReader);) {
@@ -94,7 +87,8 @@ public class Resource {
                 resources.add(new Resource(strings));
             }
         }
-        return resources;
+        resources.stream().collect(Collectors.groupingBy(Resource::getKind,Collectors.toList())).forEach(resMap::put);
+        return resMap;
     }
 
     @Override
@@ -103,7 +97,7 @@ public class Resource {
                 "plantName='" + plantName + '\'' +
                 ", plantInfo='" + plantInfo + '\'' +
                 ", imageAddress='" + imageAddress + '\'' +
-                ", plantKind='" + plantKind + '\'' +
+                ", plantKind='" + Kind + '\'' +
                 ", insectKind='" + insectKind + '\'' +
                 '}';
     }
